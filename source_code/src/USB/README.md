@@ -155,6 +155,9 @@ From plugin/app: Ask the user to approve memory management mode
 
 From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't performed, 0x01 if so
 
+Note: Memory management allows adding a context, login and encrypted password
+and reading/writing flash directly without further user confirmation.
+
 0x51: End memory management mode
 --------------------------------
 From plugin/app: Leave memory management mode
@@ -193,7 +196,7 @@ From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't perf
 
 0x57: Set favorite
 ------------------
-From plugin/app: First byte indicates favId, next 2 the parent addr, next 2 the child addr
+From plugin/app: One byte indicating slotID
 
 From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't performed, 0x01 if so
 
@@ -313,6 +316,78 @@ From Mooltipass: 1 bytes bit field. BIT0: smartcard presence. BIT1: pin unlockin
 0b110 -> Error (shouldn't happen)
 0b111 -> Error (shouldn't happen)
 ```
+
+0x71: Start credential listing
+------------------------------
+From app: 0x00 for all, 0x01 for favourites
+
+From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't
+performed, data otherwise
+
+0x72: Get credential data
+--------------------
+From app: Empty packet
+
+From Mooltipass: 0x00 wasn't performed,  otherwise, first packet is context
+next packet is login, always in pairs
+
+Note: This would be a typical exchange:
+
+```
+app: 0x71 0x00
+mp : 0x71 0x01
+app: 0x72
+mp : 0x72 [context string]
+app: 0x72
+mp : 0x72 [login string]
+app: 0x72
+mp : 0x72 [context string]
+app: 0x72
+mp : 0x72 [login string]
+...
+app: 0x72
+mp : 0x73
+```
+
+0x73: End credential listing
+---------------------------
+From Mooltipass: In reponse to get credential data, end of data
+
+0x74: Delete credential
+-----------------------
+From app: Login, context must be set
+
+From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't
+performed 0x01 otherwise
+
+0x75: Set favorite context
+--------------------------
+From app: "Set favorite" (0x57) must be set, context data
+
+From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't
+performed 0x01 otherwise
+
+0x76: Set favorite login
+------------------------
+From app: "Set favorite context" (0x75) must be set, login data
+
+From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't
+performed 0x01 otherwise
+
+0x77: Get encrypted password
+----------------------
+From app: Empty packet
+
+From Mooltipass: First byte 0x00 indicates that the request wasn't
+performed 0x01 otherwise. 32bytes of data follows
+
+
+0x78: Set encrypted password
+----------------------
+From app: 32 bytes of data
+
+From Mooltipass: 1 byte data packet, 0x00 indicates that the request wasn't
+performed 0x01 otherwise
 
 Functions
 =========
